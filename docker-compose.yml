@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+      - "8501:8501"
+    environment:
+      DATABASE_URL: postgresql+psycopg://sentineliq:sentineliq_dev_password@db:5432/sentineliq
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sentineliq
+      POSTGRES_USER: sentineliq
+      POSTGRES_PASSWORD: sentineliq_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - sentineliq_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentineliq -d sentineliq"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  sentineliq_pgdata:
